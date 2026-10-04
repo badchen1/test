@@ -23,6 +23,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -34,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
@@ -48,6 +50,7 @@ import com.kugo.mobile.data.AppPrefs
 import com.kugo.mobile.data.ThemeMode
 import com.kugo.mobile.ui.DisclaimerGate
 import com.kugo.mobile.ui.DisclaimerScreen
+import com.kugo.mobile.ui.KmcDimens
 import com.kugo.mobile.ui.KugoTheme
 import com.kugo.mobile.ui.MainScreen
 import com.kugo.mobile.ui.MainViewModel
@@ -91,15 +94,13 @@ private fun KugoRoot(
     window: Window,
     onDeclineDisclaimer: () -> Unit,
 ) {
-    val vm: MainViewModel = viewModel()
     val systemDark = isSystemInDarkTheme()
 
     var mode by remember { mutableStateOf(prefs.themeMode) }
     val dark = mode.resolveDark(systemDark)
 
-    // 免责声明：首次启动必须过一遍，同意后写进偏好，之后不再打扰。
-    // 状态放在根这一层，是因为它要盖住包括设置页在内的一切，
-    // 而且必须在主题遮盖层之上——否则切主题时会把声明页盖掉。
+    // 免责声明：默认未同意；状态放在根层，确保确认前只组合声明页，
+    // 同意并写入现有偏好后才创建 ViewModel 与主界面。
     var disclaimerAccepted by remember { mutableStateOf(prefs.disclaimerAccepted) }
 
     // 遮盖层要用的「上一套配色」与切换圆心。
@@ -147,41 +148,48 @@ private fun KugoRoot(
             .background(schemeFor(dark).background),
     ) {
         KugoTheme(darkTheme = dark) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                KugoApp(
-                    vm = vm,
-                    prefs = prefs,
-                    themeMode = mode,
-                    onThemeModeChange = { target, origin ->
-                        if (target != mode) {
-                            // 顺序很重要：先把「切换前」的配色和圆心备好，再改 mode。
-                            // 四个状态写在同一帧里，所以换色那一帧已经被旧配色铺满盖住，
-                            // 不会闪出一帧没有遮盖层的新主题。
-                            veilScheme = schemeFor(dark)
-                            revealOrigin = origin
-                            mode = target
-                            prefs.themeMode = target
-                            switchSeq++
-                        }
-                    },
+            if (disclaimerAccepted) {
+                // 只有通过免责声明后才创建 ViewModel 与主界面，避免后台初始化、点击穿透
+                // 或其它入口在声明确认前触达应用功能。
+                val vm: MainViewModel = viewModel()
+
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.TopCenter,
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .widthIn(max = KmcDimens.ContentMaxWidth)
+                            .fillMaxSize(),
+                    ) {
+                        KugoApp(
+                            vm = vm,
+                            prefs = prefs,
+                            themeMode = mode,
+                            onThemeModeChange = { target, origin ->
+                                if (target != mode) {
+                                    // 顺序很重要：先把「切换前」的配色和圆心备好，再改 mode。
+                                    // 四个状态写在同一帧里，所以换色那一帧已经被旧配色铺满盖住，
+                                    // 不会闪出一帧没有遮盖层的新主题。
+                                    veilScheme = schemeFor(dark)
+                                    revealOrigin = origin
+                                    mode = target
+                                    prefs.themeMode = target
+                                    switchSeq++
+                                }
+                            },
+                        )
+                    }
+                }
+
+                RadialThemeVeil(
+                    origin = revealOrigin,
+                    veilBackground = veilScheme.background,
+                    veilSurface = veilScheme.surface,
+                    progress = veil.value,
+                    modifier = Modifier.fillMaxSize(),
                 )
-            }
-        }
-
-        RadialThemeVeil(
-            origin = revealOrigin,
-            veilBackground = veilScheme.background,
-            veilSurface = veilScheme.surface,
-            progress = veil.value,
-            modifier = Modifier.fillMaxSize(),
-        )
-
-        // 放在根 Box 的最后一个子项 = 压在最上层。
-        // 未同意之前它盖住整个界面并吞掉所有指针事件，下面那层虽然已经组合好，用户也碰不到。
-        if (!disclaimerAccepted) {
-            // 这个节点在 KugoTheme 之外。不单独套一层的话，MaterialTheme.colorScheme
-            // 会退回 Material 的默认配色（紫），和整个应用的青绿主题对不上。
-            KugoTheme(darkTheme = dark) {
+            } else {
                 DisclaimerGate(
                     onAccept = {
                         prefs.disclaimerAccepted = true
@@ -196,7 +204,7 @@ private fun KugoRoot(
 
 @Composable
 private fun KugoApp(
-    vm: MainViewModel = viewModel(),
+    vm: MainViewModel,
     prefs: AppPrefs,
     themeMode: ThemeMode = ThemeMode.System,
     onThemeModeChange: (ThemeMode, Offset) -> Unit = { _, _ -> },

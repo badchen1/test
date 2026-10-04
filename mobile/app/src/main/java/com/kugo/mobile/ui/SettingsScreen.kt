@@ -88,12 +88,17 @@ fun SettingsScreen(
 ) {
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        contentPadding = PaddingValues(
+            start = KmcDimens.ScreenPadding,
+            end = KmcDimens.ScreenPadding,
+            top = 8.dp,
+            bottom = 32.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(KmcDimens.SectionSpacing),
     ) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
+                IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "返回")
                 }
                 Spacer(Modifier.width(4.dp))
@@ -294,7 +299,7 @@ fun SettingsScreen(
 
         items(formats, key = { it.ext }) { fmt ->
             Surface(
-                shape = RoundedCornerShape(12.dp),
+                shape = MaterialTheme.shapes.medium,
                 color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -503,7 +508,7 @@ private fun RelatedSwitchRow(
                     .border(
                         width = 1.5.dp,
                         color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = MaterialTheme.shapes.medium,
                     ),
             )
         }
@@ -631,11 +636,11 @@ private fun verifyText(flag: VerifyFlag): String = when (flag) {
 @Composable
 private fun SectionCard(title: String, content: @Composable () -> Unit) {
     Surface(
-        shape = RoundedCornerShape(14.dp),
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(14.dp)) {
+        Column(Modifier.padding(KmcDimens.CardPadding)) {
             Text(
                 title,
                 style = MaterialTheme.typography.titleSmall,
@@ -651,7 +656,7 @@ private fun SectionCard(title: String, content: @Composable () -> Unit) {
 @Composable
 private fun HintBox(title: String, body: String) {
     Surface(
-        shape = RoundedCornerShape(8.dp),
+        shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.10f),
         modifier = Modifier.fillMaxWidth(),
     ) {

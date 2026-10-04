@@ -87,7 +87,7 @@ fun MainScreen(
     val snackbar = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     val density = LocalDensity.current
-    val spacingPx = with(density) { 8.dp.toPx() }
+    val spacingPx = with(density) { KmcDimens.ItemSpacing.toPx() }
 
     var selection by remember { mutableStateOf(emptySet<Long>()) }
     val selectionMode = selection.isNotEmpty()
@@ -165,7 +165,7 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = KmcDimens.ScreenPadding),
         ) {
             Spacer(Modifier.height(12.dp))
 
@@ -287,7 +287,7 @@ fun MainScreen(
                         state = listState,
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 110.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(KmcDimens.ItemSpacing),
                     ) {
                         itemsIndexed(visible, key = { _, item -> item.id }) { index, item ->
                             TaskCard(
@@ -373,7 +373,7 @@ private fun SelectionTopBar(
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.medium,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(

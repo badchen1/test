@@ -12,8 +12,8 @@ android {
         applicationId = "com.kugo.mobile"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1"
 
         // gomobile 只生成 arm64 / armv7 / x86_64 / x86 四种 ABI 的 .so，
         // 这里限定主流 ABI，避免打包无用产物。

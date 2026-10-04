@@ -2,9 +2,12 @@ package com.kugo.mobile.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,8 +32,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -130,9 +132,8 @@ fun DisclaimerContent(modifier: Modifier = Modifier) {
 /**
  * 首次启动的确认页。
  *
- * 这是一道**必须通过的门**，所以做了两件事：
- *  1. 吃掉全部指针事件——不然底下那层界面虽然看不见，点按仍然会透下去；
- *  2. 返回键等同于「不同意并退出」，而不是把门绕过去。
+ * 根组件在未同意时只组合这一页，因此不需要额外吞掉指针事件；按钮与正文滚动可以正常
+ * 接收事件，同时主界面也不存在点击穿透或绕过声明的路径。返回键等同于「不同意并退出」。
  */
 @Composable
 fun DisclaimerGate(
@@ -143,63 +144,88 @@ fun DisclaimerGate(
 
     Surface(
         color = MaterialTheme.colorScheme.background,
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        awaitPointerEvent(PointerEventPass.Initial)
-                            .changes.forEach { it.consume() }
-                    }
-                }
-            },
+        modifier = Modifier.fillMaxSize(),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .systemBarsPadding()
-                .padding(horizontal = 22.dp, vertical = 16.dp),
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Info,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp),
-                )
-                Spacer(Modifier.width(10.dp))
+            Column(
+                modifier = Modifier
+                    .widthIn(max = KmcDimens.ReadableContentMaxWidth)
+                    .fillMaxHeight()
+                    .fillMaxWidth()
+                    .systemBarsPadding()
+                    .padding(horizontal = KmcDimens.ScreenPadding, vertical = 16.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = Disclaimer.TITLE,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+
+                Spacer(Modifier.height(14.dp))
+                DisclaimerContent(Modifier.weight(1f))
+
+                Spacer(Modifier.height(16.dp))
                 Text(
-                    text = Disclaimer.TITLE,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    text = "点击「我已阅读并同意」表示你已阅读、理解并接受以上全部条款。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Spacer(Modifier.height(12.dp))
+
+                DisclaimerActions(onAccept = onAccept, onDecline = onDecline)
             }
+        }
+    }
+}
 
-            Spacer(Modifier.height(14.dp))
-            DisclaimerContent(Modifier.weight(1f))
-
-            Spacer(Modifier.height(16.dp))
-            Text(
-                text = "点击「我已阅读并同意」表示你已阅读、理解并接受以上全部条款。",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-            )
-            Spacer(Modifier.height(12.dp))
-
+@Composable
+private fun DisclaimerActions(
+    onAccept: () -> Unit,
+    onDecline: () -> Unit,
+) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        if (maxWidth < 420.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                DisclaimerAcceptButton(onAccept, Modifier.fillMaxWidth())
+                DisclaimerDeclineButton(onDecline, Modifier.fillMaxWidth())
+            }
+        } else {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                OutlinedButton(onClick = onDecline, modifier = Modifier.weight(1f)) {
-                    Text("不同意并退出")
-                }
-                Button(onClick = onAccept, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Default.CheckCircle, null, Modifier.size(17.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("我已阅读并同意")
-                }
+                DisclaimerDeclineButton(onDecline, Modifier.weight(1f))
+                DisclaimerAcceptButton(onAccept, Modifier.weight(1f))
             }
         }
+    }
+}
+
+@Composable
+private fun DisclaimerAcceptButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Button(onClick = onClick, modifier = modifier) {
+        Icon(Icons.Default.CheckCircle, null, Modifier.size(18.dp))
+        Spacer(Modifier.width(6.dp))
+        Text("我已阅读并同意")
+    }
+}
+
+@Composable
+private fun DisclaimerDeclineButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    OutlinedButton(onClick = onClick, modifier = modifier) {
+        Text("不同意并退出")
     }
 }
 
@@ -210,26 +236,33 @@ fun DisclaimerScreen(onBack: () -> Unit) {
         color = MaterialTheme.colorScheme.background,
         modifier = Modifier.fillMaxSize(),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .systemBarsPadding()
-                .padding(horizontal = 16.dp),
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+            Column(
+                modifier = Modifier
+                    .widthIn(max = KmcDimens.ReadableContentMaxWidth)
+                    .fillMaxHeight()
+                    .fillMaxWidth()
+                    .systemBarsPadding()
+                    .padding(horizontal = KmcDimens.ScreenPadding),
+            ) {
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+                    }
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        "免责声明",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
                 }
-                Spacer(Modifier.width(4.dp))
-                Text(
-                    "免责声明",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                )
+                Spacer(Modifier.height(10.dp))
+                DisclaimerContent(Modifier.weight(1f).padding(bottom = 20.dp))
             }
-            Spacer(Modifier.height(10.dp))
-            DisclaimerContent(Modifier.weight(1f).padding(bottom = 20.dp))
         }
     }
 }

@@ -61,10 +61,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.kugo.mobile.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -110,7 +112,7 @@ fun TaskCard(
         TaskState.Decrypting, TaskState.Materializing -> MaterialTheme.colorScheme.secondary
         TaskState.Queued -> MaterialTheme.colorScheme.onSurfaceVariant
     }
-    val shape = RoundedCornerShape(14.dp)
+    val shape = MaterialTheme.shapes.large
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
 
@@ -217,7 +219,7 @@ fun TaskCard(
                     )
                 },
         ) {
-            Column(Modifier.padding(12.dp)) {
+            Column(Modifier.padding(KmcDimens.CardPadding)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
 
                     SelectionIndicator(visible = selectionMode, selected = selected, index = index)
@@ -334,7 +336,7 @@ fun TaskCard(
                 ) {
                     Spacer(Modifier.height(8.dp))
                     Surface(
-                        shape = RoundedCornerShape(8.dp),
+                        shape = MaterialTheme.shapes.small,
                         color = accent.copy(alpha = 0.10f),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
@@ -501,7 +503,7 @@ private fun SpringStepper(item: TaskItem, accent: Color) {
 @Composable
 private fun StatusBadge(state: TaskState, accent: Color) {
     Surface(
-        shape = RoundedCornerShape(10.dp),
+        shape = MaterialTheme.shapes.medium,
         color = accent.copy(alpha = 0.14f),
         modifier = Modifier.size(38.dp),
     ) {
@@ -575,7 +577,7 @@ fun AppHeader(running: Boolean, modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Surface(
-            shape = RoundedCornerShape(12.dp),
+            shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
             modifier = Modifier.size(40.dp),
         ) {
@@ -589,7 +591,7 @@ fun AppHeader(running: Boolean, modifier: Modifier = Modifier) {
         }
         Column(Modifier.weight(1f)) {
             Text(
-                "音乐解密转换",
+                stringResource(R.string.app_name),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
