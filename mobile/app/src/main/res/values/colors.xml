@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 取自应用图标主色调（淡紫 #EDE0F9），作为自适应图标的背景层 -->
+    <color name="ic_launcher_background">#EDE0F9</color>
+    <!-- 图标主体在深色/浅色背景上的强调色 -->
+    <color name="ic_launcher_accent">#A68DC7</color>
+</resources>

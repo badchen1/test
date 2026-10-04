@@ -1,0 +1,6 @@
+## 复制为 local.properties 并按本机实际情况修改。
+## local.properties 已在 .gitignore 中忽略，不要提交。
+## 用 Android Studio 打开工程时，它会自动覆盖这个文件。
+
+sdk.dir=D:/Android/Sdk
+ndk.dir=D:/Android/Sdk/ndk/26.3.11579264

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 供 FileProvider 对外共享解密后的文件 -->
+    <cache-path name="cache" path="." />
+    <files-path name="files" path="." />
+    <external-files-path name="ext_files" path="." />
+</paths>

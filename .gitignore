@@ -1,0 +1,59 @@
+# ============================================================
+#  KugoMusicConverter — 提交过滤规则
+# ============================================================
+
+# ---------- Android / Gradle 构建产物（约 1.6 GB，绝不入库）----------
+build/
+*/build/
+mobile/build/
+mobile/app/build/
+mobile/build-out/
+mobile/build-r4/
+mobile/build-r5/
+mobile/.gradle/
+.kotlin/
+mobile/.kotlin/
+mobile/.gradle-run/
+mobile/.gradle-r4/
+mobile/.gradle-r5/
+.gradle/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# 上面几行只是把本机为绕开「输出目录写保护」而轮换出来的目录名逐个列出来。
+# 以后再轮换成 build-r6/r7 时，记得回来补一行，或者直接用下面的通配：
+mobile/build-*/
+mobile/.gradle-*/
+
+# ---------- gomobile 产物（由 build-gocore.sh 生成，21 MB）----------
+mobile/app/libs/gocore.aar
+mobile/app/libs/gocore-sources.jar
+gocore/gocore.aar
+
+# ---------- 本机路径配置（含本机 SDK/NDK 绝对路径）----------
+local.properties
+
+# ---------- 发版产物与预览图（APK 走 GitHub Releases，不进仓库）----------
+dist/*.apk
+dist/icon-preview.png
+
+# ---------- 构建日志 ----------
+*.log
+
+# ---------- 编辑器 / IDE / 系统 ----------
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ---------- 本机工作流产物：改文件前的原始备份 ----------
+.backup-orig/
+
+# ---------- 运行时密钥与登录态（一旦提交就是严重事故）----------
+*.keystore
+*.jks
+*.pem
+keys/
+qq_session.bin

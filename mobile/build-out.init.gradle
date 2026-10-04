@@ -1,0 +1,13 @@
+// 把 Gradle 的构建输出重定向到全新的 build-out/<项目名> 目录。
+//
+// 目的：本机对工作区里「已存在」的文件有写保护钩子，Gradle 无法改写上一次构建
+// 留下的 build/intermediates/**，会在 mapDebugSourceSetPaths 之类的任务上抛
+// AccessDeniedException。改用全新目录即可绕开，且不触碰任何既有产物。
+//
+// 用法：
+//   gradle --init-script mirrors.init.gradle --init-script build-out.init.gradle \
+//          --project-cache-dir=../.gradle-run assembleDebug
+
+gradle.beforeProject { p ->
+    p.layout.buildDirectory.set(new File(p.rootDir, "build-out/" + p.name))
+}

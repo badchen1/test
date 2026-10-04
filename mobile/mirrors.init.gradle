@@ -1,0 +1,25 @@
+// 国内网络下的 Gradle 依赖镜像。只在显式指定时生效：
+//
+//     cd mobile
+//     gradle --init-script mirrors.init.gradle assembleDebug
+//
+// 作用：把 google() / mavenCentral() / gradlePluginPortal() 全部替换为阿里云镜像，
+//       避免直连 dl.google.com 与 repo.maven.apache.org 造成的超时与抖动。
+// 不加此参数时，工程行为与默认完全一致。
+
+def aliMaven = { repos ->
+    repos.clear()
+    repos.maven { url = 'https://maven.aliyun.com/repository/google' }
+    repos.maven { url = 'https://maven.aliyun.com/repository/gradle-plugin' }
+    repos.maven { url = 'https://maven.aliyun.com/repository/central' }
+    repos.maven { url = 'https://maven.aliyun.com/repository/public' }
+}
+
+settingsEvaluated { settings ->
+    try {
+        aliMaven(settings.pluginManagement.repositories)
+    } catch (Throwable ignored) { }
+    try {
+        aliMaven(settings.dependencyResolutionManagement.repositories)
+    } catch (Throwable ignored) { }
+}

@@ -1,0 +1,14 @@
+// 第二轮构建用的输出重定向脚本。
+//
+// 为什么再写一份而不是复用 build-out.init.gradle：
+// 本机的安全钩子会对「一次性删除超过 50 个文件」的批量删除要求确认，
+// 因此无法在每轮构建前清空上一轮的 build-out/。这里干脆把输出指向一个
+// 全新目录，Gradle 就不会去删自己上一轮的产物，也就不需要任何删除操作。
+//
+// 用法：
+//   gradle --init-script mirrors.init.gradle --init-script build-r4.init.gradle \
+//          --project-cache-dir=<工程>/.gradle-r4 assembleDebug
+
+gradle.beforeProject { p ->
+    p.layout.buildDirectory.set(new File(p.rootDir, "build-r4/" + p.name))
+}

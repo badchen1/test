@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      文件访问策略：
+      - 通过 Storage Access Framework（ACTION_OPEN_DOCUMENT_TREE / ACTION_OPEN_DOCUMENT）
+        让用户主动授权目录，无需申请宽泛的存储权限，可上架且最安全。
+      - 解密结果写回用户授权的目录，因此不需要 MANAGE_EXTERNAL_STORAGE。
+    -->
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+      QQ 登录模块需要：
+      - INTERNET：加载登录页、抓 Cookie 后校验登录态（已在上方声明）。
+      - ACCESS_NETWORK_STATE：登录前先判断是否有可用网络，
+        用于把「网络异常」和「用户没登录」区分开，避免误引导用户重登。
+      注意：本模块不需要任何存储权限——Cookie 走应用私有目录 + Keystore 加密。
+    -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Android 13+ 读取媒体文件（可选，用于快速浏览音频） -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <!-- Android 12 及以下 -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.KugoMobile"
+        android:requestLegacyExternalStorage="false"
+        tools:targetApi="35">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- 支持从文件管理器「打开方式」直接分享加密音频进来 -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          QQ 登录页容器。
+          - exported=false：只允许应用内部启动，外部应用无法拉起（防止被钓鱼页面借壳）。
+          - hardwareAccelerated：WebView 在 API 24+ 默认开启，这里显式声明以免被低端 ROM 关闭。
+          - windowSoftInputMode=adjustResize：账号密码输入时页面要能正确上推。
+          - configChanges 里额外带上 smallestScreenSize|screenLayout：登录过程中防止
+            Activity 因屏幕尺寸变化被重建（重建会丢掉 WebView 里正在走登录流程的页面）。
+        -->
+        <activity
+            android:name=".auth.QQLoginActivity"
+            android:exported="false"
+            android:label="QQ 登录"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|smallestScreenSize|screenLayout"
+            android:windowSoftInputMode="adjustResize"
+            android:hardwareAccelerated="true"
+            android:theme="@style/Theme.KugoMobile" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+
+    <!--
+      包可见性（Android 11+）：不声明的话 queryIntentActivities 恒返回空。
+      这里只用于「检测本机是否装有 QQ 客户端」以给出更友好的引导文案，
+      不涉及任何跨应用数据读取。
+    -->
+    <queries>
+        <package android:name="com.tencent.mobileqq" />
+        <package android:name="com.tencent.mm" />
+    </queries>
+
+</manifest>
