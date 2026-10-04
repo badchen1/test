@@ -45,9 +45,9 @@
 > | `D:\androidbuild\sdk` | Android SDK 35 / Build-Tools 35.0.0 / NDK r26d / platform-tools | 2.6 GB |
 > | `D:\androidbuild\jdk17` | Microsoft OpenJDK 17.0.13 | 303 MB |
 > | `D:\androidbuild\gradle-8.11.1` | Gradle 发行包 | 146 MB |
-> | `C:\Users\86187\androidbuild\go` | Go 1.26.6（GOROOT） | 256 MB |
-> | `C:\Users\86187\androidbuild\gopath` | Go 模块缓存 + `gomobile` / `gobind` | 593 MB |
-> | `C:\Users\86187\.gradle` | Gradle 依赖缓存 | 1.4 GB |
+> | `%USERPROFILE%\androidbuild\go` | Go 1.26.6（GOROOT） | 256 MB |
+> | `%USERPROFILE%\androidbuild\gopath` | Go 模块缓存 + `gomobile` / `gobind` | 593 MB |
+> | `%USERPROFILE%\.gradle` | Gradle 依赖缓存 | 1.4 GB |
 >
 > 现成的环境变量脚本：**`bash D:\androidbuild\env.sh`**（或直接 `source`）。
 > 一次性下载包与临时副本已清理。
@@ -147,7 +147,7 @@ distributionUrl=https\://mirrors.cloud.tencent.com/gradle/gradle-8.11.1-bin.zip
 
 ### 5.1 工程路径含中文会被 AGP 直接拒绝
 
-AGP 默认校验工程路径，遇到 `E:\我的软件\...` 这类非 ASCII 路径会直接报
+AGP 默认校验工程路径，遇到 `D:\中文目录\KugoMobile` 这类非 ASCII 路径会直接报
 `Your project path contains non-ASCII characters`。
 
 本工程已在 `mobile/gradle.properties` 中打开开关：

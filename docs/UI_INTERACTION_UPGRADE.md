@@ -173,19 +173,24 @@
 
 ## 6. 构建（本机必须遵守的顺序）
 
-交互层每次改动后重编都要先清构建输出，否则 Gradle 会在旧产物上撞到写保护：
+交互层每次改动后重编，都要让 Gradle 面对一个**全新的输出目录**，
+否则它要删自己上一轮的产物时会撞到写保护（`mapDebugSourceSetPaths AccessDenied`）。
 
 ```bash
-source D:/androidbuild/env.sh
-cd E:/我的软件/KugoMobile/mobile
-rm -rf build-out .gradle-run            # 必须先清，否则 mapDebugSourceSetPaths AccessDenied
-"D:/androidbuild/gradle-8.11.1/bin/gradle" \
+source <工具链>/env.sh
+cd <仓库>/mobile
+# 输出目录每轮换新名字（build-r4 → build-r5 → …），不要删旧的，原因见 BUILD-NOTES §5
+"<工具链>/gradle-8.11.1/bin/gradle" \
   --init-script mirrors.init.gradle \
-  --init-script build-out.init.gradle \
-  --project-cache-dir="$PWD/.gradle-run" \
+  --init-script build-r4.init.gradle \
+  --project-cache-dir="$PWD/.gradle-r4" \
   assembleDebug --console=plain --no-daemon
-# 产物：mobile/build-out/app/outputs/apk/debug/app-debug.apk
+# 产物：mobile/build-r4/app/outputs/apk/debug/app-debug.apk
 ```
 
-> 注意：日志文件（如 `build-debug.log`）**也要每次换名或先删**，
-> 否则 shell 重定向会因目标已存在而失败，命令静默不执行、你还以为构建跑过了。
+> 两个坑：
+> 1. **不要写 `rm -rf build-out && gradle ...`** —— 批量删除会被安全钩子拦下，
+>    `&&` 链断在第一步，gradle 根本没执行。
+> 2. **日志名每轮也要换**（`build-r5.log` → `build-r6.log`）。目标已存在时 shell 重定向失败，
+>    而随后的 `tail` 会读到**上一轮的旧日志**，里面可能赫然写着 `BUILD SUCCESSFUL`。
+>    判断构建是否真跑过，要看产物目录的时间戳。
